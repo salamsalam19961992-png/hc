@@ -45,17 +45,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function initializeApp() {
     try {
-        // Try to load from localStorage first
-        loadFromLocalStorage();
-        
-        // If no local data, try Firebase
-        if (categories.priced.length === 0 && categories.unpriced.length === 0) {
+        // Try to load from Firebase first
             try {
                 await loadData();
             } catch (firebaseError) {
-                console.log('Firebase not available, starting with empty data');
-                // Start with empty data - no default data
+            console.log('Firebase not available, trying localStorage');
+            // Fallback to localStorage
+            loadFromLocalStorage();
             }
+        
+        // If still no data, start with empty arrays
+        if (categories.priced.length === 0 && categories.unpriced.length === 0 && categories.clinics.length === 0) {
+            console.log('Starting with empty data');
         }
         
         // Render all tabs
@@ -63,7 +64,12 @@ async function initializeApp() {
         renderUnpricedCategories();
         renderClinics();
         
-        // Save to localStorage as backup
+        // Save to Firebase and localStorage as backup
+        try {
+            await saveData();
+        } catch (error) {
+            console.log('Firebase save failed, using localStorage backup');
+        }
         saveToLocalStorage();
         
         console.log('App initialized successfully');
@@ -127,6 +133,73 @@ async function loadData() {
             showMessage('خطأ في الاتصال. تحقق من اتصال الإنترنت', 'error');
         } else {
             showMessage('خطأ في تحميل البيانات: ' + error.message, 'error');
+        }
+        
+        throw error;
+    }
+}
+
+async function saveData() {
+    try {
+        // Check if Firebase is initialized
+        if (!firebase.apps.length || !db) {
+            throw new Error('Firebase not initialized');
+        }
+        
+        // Save priced categories
+        const batch = db.batch();
+        
+        // Clear existing priced categories
+        const pricedSnapshot = await db.collection('pricedCategories').get();
+        pricedSnapshot.docs.forEach(doc => {
+            batch.delete(doc.ref);
+        });
+        
+        // Add new priced categories
+        categories.priced.forEach(category => {
+            const docRef = db.collection('pricedCategories').doc();
+            batch.set(docRef, category);
+        });
+        
+        // Clear existing unpriced categories
+        const unpricedSnapshot = await db.collection('unpricedCategories').get();
+        unpricedSnapshot.docs.forEach(doc => {
+            batch.delete(doc.ref);
+        });
+        
+        // Add new unpriced categories
+        categories.unpriced.forEach(category => {
+            const docRef = db.collection('unpricedCategories').doc();
+            batch.set(docRef, category);
+        });
+        
+        // Clear existing clinics
+        const clinicsSnapshot = await db.collection('clinics').get();
+        clinicsSnapshot.docs.forEach(doc => {
+            batch.delete(doc.ref);
+        });
+        
+        // Add new clinics
+        categories.clinics.forEach(clinic => {
+            const docRef = db.collection('clinics').doc();
+            batch.set(docRef, clinic);
+        });
+        
+        // Commit the batch
+        await batch.commit();
+        
+        console.log('Data saved to Firebase successfully');
+        
+    } catch (error) {
+        console.error('Error saving data to Firebase:', error);
+        
+        // Show user-friendly error message
+        if (error.code === 'permission-denied') {
+            showMessage('خطأ في الصلاحيات. تأكد من إعدادات Firebase', 'error');
+        } else if (error.code === 'unavailable') {
+            showMessage('خطأ في الاتصال. تحقق من اتصال الإنترنت', 'error');
+        } else {
+            showMessage('خطأ في حفظ البيانات: ' + error.message, 'error');
         }
         
         throw error;
@@ -430,7 +503,7 @@ function closeReportsModal() {
 }
 
 // Category Management
-function addPricedCategory() {
+async function addPricedCategory() {
     const name = prompt('اسم الفئة المثمنة:');
     if (!name) return;
     
@@ -450,7 +523,7 @@ function addPricedCategory() {
     addCategory('priced', newCategory);
 }
 
-function addUnpricedCategory() {
+async function addUnpricedCategory() {
     const name = prompt('اسم الفئة غير المثمنة:');
     if (!name) return;
     
@@ -478,7 +551,12 @@ async function addCategory(type, categoryData) {
         
         categories[type].push(categoryData);
         
-        // Save to localStorage
+        // Save to Firebase and localStorage
+        try {
+            await saveData();
+        } catch (error) {
+            console.log('Firebase save failed, using localStorage backup');
+        }
         saveToLocalStorage();
         
         if (type === 'priced') {
@@ -494,6 +572,11 @@ async function addCategory(type, categoryData) {
         // Fallback: add locally
         categoryData.id = type + '_' + Date.now();
         categories[type].push(categoryData);
+        try {
+            await saveData();
+        } catch (error) {
+            console.log('Firebase save failed, using localStorage backup');
+        }
         saveToLocalStorage();
         
         if (type === 'priced') {
@@ -598,7 +681,12 @@ async function updateCategory(type, categoryId, updatedData) {
             categories[type][index] = updatedData;
         }
         
-        // Save to localStorage
+        // Save to Firebase and localStorage
+        try {
+            await saveData();
+        } catch (error) {
+            console.log('Firebase save failed, using localStorage backup');
+        }
         saveToLocalStorage();
         
         if (type === 'priced') {
@@ -615,6 +703,11 @@ async function updateCategory(type, categoryId, updatedData) {
         const index = categories[type].findIndex(c => c.id === categoryId);
         if (index !== -1) {
             categories[type][index] = updatedData;
+        }
+        try {
+            await saveData();
+        } catch (error) {
+            console.log('Firebase save failed, using localStorage backup');
         }
         saveToLocalStorage();
         
@@ -640,7 +733,12 @@ async function deleteCategory(type, categoryId) {
         // Remove from local data
         categories[type] = categories[type].filter(c => c.id !== categoryId);
         
-        // Save to localStorage
+        // Save to Firebase and localStorage
+        try {
+            await saveData();
+        } catch (error) {
+            console.log('Firebase save failed, using localStorage backup');
+        }
         saveToLocalStorage();
         
         if (type === 'priced') {
@@ -655,6 +753,11 @@ async function deleteCategory(type, categoryId) {
         
         // Fallback: delete locally
         categories[type] = categories[type].filter(c => c.id !== categoryId);
+        try {
+            await saveData();
+        } catch (error) {
+            console.log('Firebase save failed, using localStorage backup');
+        }
         saveToLocalStorage();
         
         if (type === 'priced') {
@@ -668,7 +771,7 @@ async function deleteCategory(type, categoryId) {
 }
 
 // Clinic Management
-function addClinic() {
+async function addClinic() {
     const name = prompt('الاسم:');
     if (!name) return;
     
@@ -711,7 +814,12 @@ async function addClinicToDB(clinicData) {
         
         categories.clinics.push(clinicData);
         
-        // Save to localStorage
+        // Save to Firebase and localStorage
+        try {
+            await saveData();
+        } catch (error) {
+            console.log('Firebase save failed, using localStorage backup');
+        }
         saveToLocalStorage();
         
         renderClinics();
@@ -722,6 +830,11 @@ async function addClinicToDB(clinicData) {
         // Fallback: add locally even if Firebase fails
         clinicData.id = 'clinic_' + Date.now();
         categories.clinics.push(clinicData);
+        try {
+            await saveData();
+        } catch (error) {
+            console.log('Firebase save failed, using localStorage backup');
+        }
         saveToLocalStorage();
         renderClinics();
         
@@ -773,7 +886,12 @@ async function editClinic(clinicId) {
             categories.clinics[index] = updatedClinic;
         }
         
-        // Save to localStorage
+        // Save to Firebase and localStorage
+        try {
+            await saveData();
+        } catch (error) {
+            console.log('Firebase save failed, using localStorage backup');
+        }
         saveToLocalStorage();
         
         renderClinics();
@@ -785,6 +903,11 @@ async function editClinic(clinicId) {
         const index = categories.clinics.findIndex(c => c.id === clinicId);
         if (index !== -1) {
             categories.clinics[index] = updatedClinic;
+        }
+        try {
+            await saveData();
+        } catch (error) {
+            console.log('Firebase save failed, using localStorage backup');
         }
         saveToLocalStorage();
         renderClinics();
@@ -805,7 +928,12 @@ async function deleteClinic(clinicId) {
         // Remove from local data
         categories.clinics = categories.clinics.filter(c => c.id !== clinicId);
         
-        // Save to localStorage
+        // Save to Firebase and localStorage
+        try {
+            await saveData();
+        } catch (error) {
+            console.log('Firebase save failed, using localStorage backup');
+        }
         saveToLocalStorage();
         
         renderClinics();
@@ -815,6 +943,11 @@ async function deleteClinic(clinicId) {
         
         // Fallback: delete locally
         categories.clinics = categories.clinics.filter(c => c.id !== clinicId);
+        try {
+            await saveData();
+        } catch (error) {
+            console.log('Firebase save failed, using localStorage backup');
+        }
         saveToLocalStorage();
         renderClinics();
         
@@ -901,7 +1034,7 @@ function clearIndexedDB() {
 }
 
 // Clear all data function
-function clearAllData() {
+async function clearAllData() {
     if (confirm('هل أنت متأكد من مسح جميع البيانات؟ هذا الإجراء لا يمكن التراجع عنه.')) {
         try {
             // Clear localStorage
@@ -957,7 +1090,7 @@ function exportData() {
     }
 }
 
-function importData() {
+async function importData() {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json';
@@ -967,7 +1100,7 @@ function importData() {
         if (!file) return;
         
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = async function(e) {
             try {
                 const data = JSON.parse(e.target.result);
                 
@@ -980,7 +1113,12 @@ function importData() {
                 renderUnpricedCategories();
                 renderClinics();
                 
-                // Save to localStorage
+                // Save to Firebase and localStorage
+                try {
+                    await saveData();
+                } catch (error) {
+                    console.log('Firebase save failed, using localStorage backup');
+                }
                 saveToLocalStorage();
                 
                 showMessage('تم استيراد البيانات بنجاح', 'success');
@@ -996,7 +1134,7 @@ function importData() {
     input.click();
 }
 
-function loadDefaultData() {
+async function loadDefaultData() {
     if (confirm('هل تريد مسح جميع البيانات الحالية؟ سيتم حذف جميع البيانات الموجودة.')) {
         try {
             // Clear all data
@@ -1009,7 +1147,12 @@ function loadDefaultData() {
             renderUnpricedCategories();
             renderClinics();
             
-            // Save to localStorage
+            // Save to Firebase and localStorage
+            try {
+                await saveData();
+            } catch (error) {
+                console.log('Firebase save failed, using localStorage backup');
+            }
             saveToLocalStorage();
             
             showMessage('تم مسح جميع البيانات بنجاح', 'success');
@@ -1947,7 +2090,7 @@ function updateDestinationOptions() {
     });
 }
 
-function confirmSend() {
+async function confirmSend() {
     const destinationType = document.getElementById('destinationType').value;
     const destinationId = document.getElementById('destinationSelect').value;
     const quantity = parseInt(document.getElementById('sendQuantity').value);
@@ -1998,7 +2141,12 @@ function confirmSend() {
             currentSendCategory.total = price * (newRemaining || 0) * (currentSendCategory.quantity || 0); // price × receipts × booklets
         }
         
-        // Save to localStorage
+        // Save to Firebase and localStorage
+        try {
+            await saveData();
+        } catch (error) {
+            console.log('Firebase save failed, using localStorage backup');
+        }
         saveToLocalStorage();
         
         // Try to save to Firebase if available
