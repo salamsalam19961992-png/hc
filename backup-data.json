@@ -11,54 +11,60 @@
       "name": "فئة 1500 دينار",
       "price": 1500,
       "quantity": 100,
+      "bookletCount": 1,
       "total": 150000,
       "used": 0,
-      "remaining": 100
+      "remaining": 1
     },
     {
       "id": "2",
       "name": "فئة 3000 دينار",
       "price": 3000,
       "quantity": 100,
+      "bookletCount": 1,
       "total": 300000,
       "used": 0,
-      "remaining": 100
+      "remaining": 1
     },
     {
       "id": "3",
       "name": "فئة 4000 دينار",
       "price": 4000,
       "quantity": 100,
+      "bookletCount": 1,
       "total": 400000,
       "used": 0,
-      "remaining": 100
+      "remaining": 1
     },
     {
       "id": "4",
       "name": "فئة 5000 دينار",
       "price": 5000,
       "quantity": 100,
+      "bookletCount": 1,
       "total": 500000,
       "used": 0,
-      "remaining": 100
+      "remaining": 1
     },
     {
       "id": "5",
       "name": "فئة 25000 دينار",
       "price": 25000,
       "quantity": 50,
+      "bookletCount": 1,
       "total": 1250000,
       "used": 0,
-      "remaining": 50
+      "remaining": 1
     },
     {
       "id": "6",
       "name": "فئة 40000 دينار",
       "price": 40000,
       "quantity": 50,
+      "bookletCount": 1,
       "total": 2000000,
       "used": 0,
-      "remaining": 50
+      "remaining": 1
     }
   ],
   "unpricedCategories": [
@@ -66,71 +72,81 @@
       "id": "1",
       "name": "وصل الحاسبة 92",
       "quantity": 50,
+      "bookletCount": 1,
       "used": 0,
-      "remaining": 50
+      "remaining": 1
     },
     {
       "id": "2",
       "name": "وصل الحاسبة 37",
       "quantity": 50,
+      "bookletCount": 1,
       "used": 0,
-      "remaining": 50
+      "remaining": 1
     },
     {
       "id": "3",
       "name": "وصل قبض تامينات الجناح الخاص",
       "quantity": 50,
+      "bookletCount": 1,
       "used": 0,
-      "remaining": 50
+      "remaining": 1
     },
     {
       "id": "4",
       "name": "قائمة حساب الجناح الخاص",
       "quantity": 50,
+      "bookletCount": 1,
       "used": 0,
-      "remaining": 50
+      "remaining": 1
     },
     {
       "id": "5",
       "name": "تقارير امراض مزمنة",
       "quantity": 50,
+      "bookletCount": 1,
       "used": 0,
-      "remaining": 50
+      "remaining": 1
     },
     {
       "id": "6",
       "name": "بطاقة امرض مزمنة",
       "quantity": 50,
+      "bookletCount": 1,
       "used": 0,
-      "remaining": 50
+      "remaining": 1
     },
     {
       "id": "7",
       "name": "مستند اخراج تخزين للبطاقات",
       "quantity": 50,
+      "bookletCount": 1,
       "used": 0,
-      "remaining": 50
+      "remaining": 1
     },
     {
       "id": "8",
       "name": "مستند اخراج تخزين للادوية",
       "quantity": 50,
+      "bookletCount": 1,
       "used": 0,
-      "remaining": 50
+      "remaining": 1
     },
     {
       "id": "9",
       "name": "مستند ادخال تخزين",
       "quantity": 50,
+      "bookletCount": 1,
       "used": 0,
-      "remaining": 50
+      "remaining": 1
     },
     {
       "id": "10",
       "name": "قرار لجنة طبية",
       "quantity": 50,
+      "bookletCount": 1,
       "used": 0,
-      "remaining": 50
+      "remaining": 1
     }
   ],
   "clinics": [

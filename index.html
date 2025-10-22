@@ -9,6 +9,118 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
     <!-- <link rel="manifest" href="manifest.json"> -->
     <meta name="theme-color" content="#3498db">
+    <style>
+        .badge {
+            display: inline-block;
+            padding: 0.25em 0.6em;
+            font-size: 0.75em;
+            font-weight: 700;
+            line-height: 1;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: baseline;
+            border-radius: 0.25rem;
+        }
+        .badge-success { color: #fff; background-color: #28a745; }
+        .badge-info { color: #fff; background-color: #17a2b8; }
+        .badge-primary { color: #fff; background-color: #007bff; }
+        .badge-secondary { color: #fff; background-color: #6c757d; }
+        .badge-light { color: #212529; background-color: #f8f9fa; }
+        
+        .current-datetime {
+            text-align: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .current-datetime i {
+            margin-left: 8px;
+            font-size: 18px;
+        }
+        
+        .current-datetime span {
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .calendar-switcher {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn-calendar-switch, .btn-calendar-toggle {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .btn-calendar-switch:hover, .btn-calendar-toggle:hover {
+            background: rgba(255,255,255,0.3);
+            border-color: rgba(255,255,255,0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .btn-calendar-switch.active {
+            background: rgba(255,255,255,0.4);
+            border-color: rgba(255,255,255,0.6);
+        }
+        
+        .btn-calendar-switch i {
+            margin-left: 4px;
+        }
+        
+        .btn-calendar-toggle i {
+            font-size: 14px;
+        }
+        
+        .clinic-info-section, .materials-summary-section, .materials-details-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        
+        .info-item label {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .info-item span {
+            color: #666;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -16,6 +128,21 @@
         <header class="header">
             <div class="header-content">
                 <h1><i class="fas fa-hospital"></i> برنامج مطابقة مخزن البطاقات في مديرية العيادات الطبية الشعبية/الديوانية</h1>
+                <div class="current-datetime" id="currentDateTime">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span id="dateTimeDisplay">جاري تحميل التاريخ...</span>
+                    <div class="calendar-switcher">
+                        <button class="btn-calendar-switch" onclick="setCalendarType(true)" title="التقويم الهجري">
+                            <i class="fas fa-moon"></i> هجري
+                        </button>
+                        <button class="btn-calendar-switch" onclick="setCalendarType(false)" title="التقويم الميلادي">
+                            <i class="fas fa-sun"></i> ميلادي
+                        </button>
+                        <button class="btn-calendar-toggle" onclick="toggleCalendar()" title="تبديل التقويم">
+                            <i class="fas fa-exchange-alt"></i>
+                        </button>
+                    </div>
+                </div>
                 <div class="header-actions">
                     <button class="btn btn-primary" onclick="showAddModal()">
                         <i class="fas fa-plus"></i> إضافة بطاقة جديدة
@@ -50,6 +177,9 @@
             <button class="tab-btn" onclick="showTab('unpriced')">
                 <i class="fas fa-file-alt"></i> الفئات غير المثمنة
             </button>
+            <button class="tab-btn" onclick="showTab('warehouse')">
+                <i class="fas fa-warehouse"></i> إدارة المخزن
+            </button>
             <button class="tab-btn" onclick="showTab('clinics')">
                 <i class="fas fa-hospital"></i> إدارة العيادات والمشاريع والأجنحة الخاصة وعيادة تأمين صحي واللجان
             </button>
@@ -78,9 +208,9 @@
                             <tr>
                                 <th>نوع الفئة</th>
                                 <th>السعر (دينار)</th>
-                                <th>عدد الجلد</th>
                                 <th>عدد الوصل</th>
                                 <th>المستخدم</th>
+                                <th>عدد الجلد</th>
                                 <th>المبلغ الإجمالي</th>
                                 <th>الإجراءات</th>
                             </tr>
@@ -117,9 +247,9 @@
                         <thead>
                             <tr>
                                 <th>نوع الفئة</th>
-                                <th>عدد الجلد</th>
                                 <th>عدد الوصل</th>
                                 <th>المستخدم</th>
+                                <th>عدد الجلد</th>
                                 <th>الإجراءات</th>
                             </tr>
                         </thead>
@@ -131,6 +261,103 @@
                 
                 <!-- Summary Cards -->
                 <div class="summary-cards" id="unpriced-summary">
+                    <!-- Summary will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Warehouse Management Tab -->
+            <div id="warehouse-tab" class="tab-content">
+                <div class="section-header">
+                    <h2>إدارة المخزن</h2>
+                    <div class="section-actions">
+                        <button class="btn btn-success" onclick="addWarehouseItem()">
+                            <i class="fas fa-plus"></i> إضافة صنف جديد
+                        </button>
+                        <button class="btn btn-info" onclick="showWarehouseReports()">
+                            <i class="fas fa-chart-bar"></i> تقارير المخزن
+                        </button>
+                        <button class="btn btn-warning" onclick="exportWarehouseData()">
+                            <i class="fas fa-file-excel"></i> تصدير Excel
+                        </button>
+                        <button class="btn btn-primary" onclick="migrateExistingDataToWarehouse()">
+                            <i class="fas fa-exchange-alt"></i> تحويل البيانات الموجودة
+                        </button>
+                        <button class="btn btn-secondary" onclick="loadDefaultDataToWarehouse()">
+                            <i class="fas fa-database"></i> تحميل البيانات الافتراضية
+                        </button>
+                        <button class="btn btn-danger" onclick="clearWarehouseData()">
+                            <i class="fas fa-trash"></i> مسح المخزن
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Warehouse Items Table -->
+                <div class="table-container">
+                    <table class="data-table" id="warehouse-table">
+                        <thead>
+                            <tr>
+                                <th>اسم الصنف</th>
+                                <th>النوع</th>
+                                <th>عدد الوصل</th>
+                                <th>عدد الجلد</th>
+                                <th>السعر</th>
+                                <th>المبلغ الإجمالي</th>
+                                <th>تاريخ الإدخال</th>
+                                <th>المستخدم</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="warehouse-tbody">
+                            <!-- Warehouse items will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Summary Cards -->
+                <div class="summary-cards" id="warehouse-summary">
+                    <!-- Summary will be loaded here -->
+                </div>
+                
+                <!-- Carried Over Items Section -->
+                <div class="section-header">
+                    <h2><i class="fas fa-history"></i> المخزن المدور من العام الماضي</h2>
+                    <div class="section-actions">
+                        <button class="btn btn-info" onclick="showCarriedOverReports()">
+                            <i class="fas fa-chart-bar"></i> تقارير المواد المدورة
+                        </button>
+                        <button class="btn btn-warning" onclick="exportCarriedOverData()">
+                            <i class="fas fa-file-excel"></i> تصدير Excel
+                        </button>
+                        <button class="btn btn-success" onclick="addCarriedOverItem()">
+                            <i class="fas fa-plus"></i> إضافة مادة مدورة
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Carried Over Items Table -->
+                <div class="table-container">
+                    <table class="data-table" id="carried-over-table">
+                        <thead>
+                            <tr>
+                                <th>اسم المادة</th>
+                                <th>النوع</th>
+                                <th>عدد الوصل</th>
+                                <th>عدد الجلد</th>
+                                <th>السعر</th>
+                                <th>المبلغ الإجمالي</th>
+                                <th>تاريخ الإدخال</th>
+                                <th>المستخدم</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="carried-over-tbody">
+                            <!-- Carried over items will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Carried Over Summary -->
+                <div class="summary-cards" id="carried-over-summary">
                     <!-- Summary will be loaded here -->
                 </div>
             </div>
@@ -178,6 +405,9 @@
                                 <th>التصنيف</th>
                                 <th>الموقع</th>
                                 <th>الحالة</th>
+                                <th>عدد الأصناف</th>
+                                <th>إجمالي الكمية</th>
+                                <th>المبلغ الإجمالي</th>
                                 <th>الإجراءات</th>
                             </tr>
                         </thead>
@@ -216,16 +446,20 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="bookletCount">عدد الجلد:</label>
+                            <label for="bookletCount">عدد الوصل:</label>
                             <input type="number" id="bookletCount" min="0" value="0">
                         </div>
                         <div class="form-group">
-                            <label for="receiptCount">عدد الوصل:</label>
+                            <label for="receiptCount">عدد الجلد:</label>
                             <input type="number" id="receiptCount" min="0" value="0">
                         </div>
                         <div class="form-group">
                             <label for="quantity">الكمية:</label>
                             <input type="number" id="quantity" min="1" required>
+                        </div>
+                        <div class="form-group" id="totalAmountGroup" style="display: none;">
+                            <label for="totalAmount">المبلغ الإجمالي (دينار):</label>
+                            <input type="number" id="totalAmount" min="0" step="0.01" readonly placeholder="يتم حسابها تلقائياً">
                         </div>
                         <div class="form-group">
                             <label for="notes">ملاحظات:</label>
@@ -236,6 +470,229 @@
                 <div class="modal-footer">
                     <button class="btn btn-secondary" onclick="closeModal()">إلغاء</button>
                     <button class="btn btn-primary" onclick="saveEntry()">حفظ</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Category Modal -->
+        <div id="addCategoryModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="addCategoryTitle">إضافة فئة جديدة</h3>
+                    <button class="close-btn" onclick="closeAddCategoryModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="addCategoryForm">
+                        <div class="form-group">
+                            <label for="categoryName">اسم الفئة:</label>
+                            <input type="text" id="categoryName" required placeholder="أدخل اسم الفئة">
+                        </div>
+                        <div class="form-group">
+                            <label for="categoryPrice">السعر (دينار):</label>
+                            <input type="number" id="categoryPrice" min="0" step="0.01" required placeholder="أدخل السعر">
+                        </div>
+                        <div class="form-group">
+                            <label for="categoryQuantity">عدد الوصل:</label>
+                            <input type="number" id="categoryQuantity" min="1" required placeholder="أدخل عدد الوصل">
+                        </div>
+                        <div class="form-group">
+                            <label for="categoryBookletCount">عدد الجلد:</label>
+                            <input type="number" id="categoryBookletCount" min="1" value="1" required placeholder="أدخل عدد الجلد">
+                        </div>
+                        <div class="form-group">
+                            <label for="categoryUsed">المستخدم:</label>
+                            <input type="number" id="categoryUsed" min="0" value="0" placeholder="أدخل الكمية المستخدمة">
+                        </div>
+                        <div class="form-group">
+                            <label for="categoryTotal">المبلغ الإجمالي (دينار):</label>
+                            <input type="number" id="categoryTotal" min="0" step="0.01" readonly placeholder="يتم حسابها تلقائياً">
+                        </div>
+                        <div class="form-group">
+                            <label for="categoryNotes">ملاحظات:</label>
+                            <textarea id="categoryNotes" rows="3" placeholder="ملاحظات إضافية (اختياري)"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeAddCategoryModal()">إلغاء</button>
+                    <button class="btn btn-primary" onclick="saveNewCategory()">حفظ</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Warehouse Add Modal -->
+        <div id="warehouseModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>إضافة صنف جديد للمخزن</h3>
+                    <button class="close-btn" onclick="closeWarehouseModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="warehouseForm">
+                        <div class="form-group">
+                            <label for="itemName">اسم الصنف:</label>
+                            <input type="text" id="itemName" required placeholder="أدخل اسم الصنف">
+                        </div>
+                        <div class="form-group">
+                            <label for="itemType">نوع المادة:</label>
+                            <select id="itemType" required onchange="toggleWarehousePriceField()">
+                                <option value="">اختر نوع المادة</option>
+                                <option value="priced">مثمنة</option>
+                                <option value="unpriced">غير مثمنة</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="itemQuantity">عدد الوصل:</label>
+                            <input type="number" id="itemQuantity" min="0" required placeholder="أدخل عدد الوصل">
+                        </div>
+                        <div class="form-group">
+                            <label for="itemUsed">عدد الجلد:</label>
+                            <input type="number" id="itemUsed" min="0" value="0" placeholder="أدخل عدد الجلد">
+                        </div>
+                        <div class="form-group">
+                            <label for="itemRemaining">المتبقي:</label>
+                            <input type="number" id="itemRemaining" min="0" readonly placeholder="يتم حسابها تلقائياً">
+                        </div>
+                        <div class="form-group" id="itemPriceGroup" style="display: none;">
+                            <label for="itemPrice">السعر (دينار):</label>
+                            <input type="number" id="itemPrice" min="0" step="0.01" placeholder="أدخل السعر">
+                        </div>
+                        <div class="form-group" id="itemTotalGroup" style="display: none;">
+                            <label for="itemTotal">المبلغ الإجمالي (دينار):</label>
+                            <input type="number" id="itemTotal" min="0" step="0.01" readonly placeholder="يتم حسابها تلقائياً">
+                        </div>
+                        <div class="form-group">
+                            <label for="itemSupplier">المورد:</label>
+                            <input type="text" id="itemSupplier" placeholder="اسم المورد (اختياري)">
+                        </div>
+                        <div class="form-group">
+                            <label for="itemNotes">ملاحظات:</label>
+                            <textarea id="itemNotes" rows="3" placeholder="ملاحظات إضافية (اختياري)"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeWarehouseModal()">إلغاء</button>
+                    <button class="btn btn-primary" onclick="saveWarehouseItem()">حفظ</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carried Over Item Modal -->
+        <div id="carriedOverModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>إضافة مادة مدورة من العام الماضي</h3>
+                    <button class="close-btn" onclick="closeCarriedOverModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="carriedOverForm">
+                        <div class="form-group">
+                            <label for="carriedOverName">اسم المادة:</label>
+                            <input type="text" id="carriedOverName" required placeholder="أدخل اسم المادة المدورة">
+                        </div>
+                        <div class="form-group">
+                            <label for="carriedOverType">نوع المادة:</label>
+                            <select id="carriedOverType" required onchange="toggleCarriedOverPriceField()">
+                                <option value="">اختر نوع المادة</option>
+                                <option value="priced">مثمنة</option>
+                                <option value="unpriced">غير مثمنة</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="carriedOverQuantity">العدد الأصلي (العداد):</label>
+                            <input type="number" id="carriedOverQuantity" min="0" required placeholder="أدخل العدد الأصلي">
+                        </div>
+                        <div class="form-group">
+                            <label for="carriedOverUsed">المستخدم:</label>
+                            <input type="number" id="carriedOverUsed" min="0" value="0" placeholder="عدد المستخدم">
+                        </div>
+                        <div class="form-group">
+                            <label for="carriedOverRemaining">المتبقي:</label>
+                            <input type="number" id="carriedOverRemaining" min="0" readonly placeholder="يتم حسابها تلقائياً">
+                        </div>
+                        <div class="form-group" id="carriedOverPriceGroup" style="display: none;">
+                            <label for="carriedOverPrice">السعر (دينار):</label>
+                            <input type="number" id="carriedOverPrice" min="0" step="0.01" placeholder="أدخل السعر">
+                        </div>
+                        <div class="form-group">
+                            <label for="carriedOverSupplier">المورد:</label>
+                            <input type="text" id="carriedOverSupplier" placeholder="اسم المورد (اختياري)">
+                        </div>
+                        <div class="form-group">
+                            <label for="carriedOverNotes">ملاحظات:</label>
+                            <textarea id="carriedOverNotes" rows="3" placeholder="ملاحظات إضافية (اختياري)"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeCarriedOverModal()">إلغاء</button>
+                    <button class="btn btn-primary" onclick="saveCarriedOverItem()">حفظ</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Warehouse Reports Modal -->
+        <div id="warehouseReportsModal" class="modal">
+            <div class="modal-content large">
+                <div class="modal-header">
+                    <h3><i class="fas fa-chart-bar"></i> تقارير المخزن المفصلة</h3>
+                    <button class="close-btn" onclick="closeWarehouseReportsModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="reports-grid">
+                        <div class="report-card">
+                            <h4>إجمالي الأصناف</h4>
+                            <div class="report-content" id="warehouse-total-items"></div>
+                        </div>
+                        <div class="report-card">
+                            <h4>إجمالي القيمة</h4>
+                            <div class="report-content" id="warehouse-total-value"></div>
+                        </div>
+                        <div class="report-card">
+                            <h4>أصناف منخفضة المخزون</h4>
+                            <div class="report-content" id="warehouse-low-stock"></div>
+                        </div>
+                    </div>
+                    <div class="warehouse-details" id="warehouse-details">
+                        <!-- Detailed warehouse report will be loaded here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeWarehouseReportsModal()">إغلاق</button>
+                    <button class="btn btn-success" onclick="printWarehouseReport()">
+                        <i class="fas fa-print"></i> طباعة التقرير
+                    </button>
+                    <button class="btn btn-primary" onclick="exportWarehouseToRealExcel()">
+                        <i class="fas fa-file-excel"></i> تصدير Excel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carried Over Reports Modal -->
+        <div id="carriedOverReportsModal" class="modal">
+            <div class="modal-content large">
+                <div class="modal-header">
+                    <h3><i class="fas fa-chart-bar"></i> تقارير المواد المدورة من العام الماضي</h3>
+                    <button class="close-btn" onclick="closeCarriedOverReportsModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="report-summary" id="carried-over-report-summary">
+                        <!-- Summary cards will be loaded here -->
+                    </div>
+                    <div class="report-content" id="carried-over-details">
+                        <!-- Detailed table will be loaded here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeCarriedOverReportsModal()">إغلاق</button>
+                    <button class="btn btn-success" onclick="printCarriedOverReport()">
+                        <i class="fas fa-print"></i> طباعة التقرير
+                    </button>
+                    <button class="btn btn-primary" onclick="exportCarriedOverToExcel()">
+                        <i class="fas fa-file-excel"></i> تصدير Excel
+                    </button>
                 </div>
             </div>
         </div>
@@ -524,7 +981,7 @@
                                                     <th>السعر</th>
                                                     <th>العدد الأصلي</th>
                                                     <th>المستخدم</th>
-                                                    <th>المتبقي</th>
+                                                    <th>عدد الجلد</th>
                                                     <th>المبلغ الإجمالي</th>
                                                 </tr>
                                             </thead>
@@ -544,7 +1001,7 @@
                                                     <th>اسم الفئة</th>
                                                     <th>العدد الأصلي</th>
                                                     <th>المستخدم</th>
-                                                    <th>المتبقي</th>
+                                                    <th>عدد الجلد</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="unpriced-info-tbody">
@@ -573,6 +1030,11 @@
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <!-- SheetJS for Excel export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Hijri Date Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-hijri/2.1.2/moment-hijri.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
     <script src="script.js"></script>
     
     <!-- Service Worker Registration - Disabled for local file access -->
